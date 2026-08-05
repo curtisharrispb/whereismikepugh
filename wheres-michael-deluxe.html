@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#efe8da" />
+  <title>Where's Michael?</title>
+  <style>
+    :root{
+      --ink:#171717;
+      --paper:#fffdf8;
+      --cream:#efe8da;
+      --yellow:#ffd84d;
+      --green:#2f7d4a;
+      --muted:#6f6f6f;
+      --shadow:8px 8px 0 var(--ink);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:Arial,Helvetica,sans-serif;
+      color:var(--ink);
+      background:linear-gradient(135deg,#f4eee3,var(--cream));
+      padding:22px;
+    }
+    .app{
+      width:min(980px,100%);
+      margin:0 auto;
+      background:var(--paper);
+      border:3px solid var(--ink);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    header{
+      padding:28px 30px 20px;
+      border-bottom:3px solid var(--ink);
+      text-align:center;
+    }
+    .eyebrow{
+      margin:0 0 8px;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      font-size:.78rem;
+      font-weight:900;
+    }
+    h1{
+      margin:0;
+      font-size:clamp(2.7rem,8vw,5.8rem);
+      line-height:.9;
+      letter-spacing:-.055em;
+    }
+    .sub{
+      margin:16px auto 0;
+      max-width:650px;
+      line-height:1.5;
+      color:var(--muted);
+    }
+    .controls{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      justify-content:center;
+      padding:18px 22px;
+      border-bottom:3px solid var(--ink);
+      background:#f7f1e6;
+    }
+    select,button{
+      font:inherit;
+      border:3px solid var(--ink);
+      border-radius:12px;
+      padding:12px 15px;
+      background:#fff;
+      color:var(--ink);
+      font-weight:800;
+    }
+    button{
+      cursor:pointer;
+      box-shadow:4px 4px 0 var(--ink);
+    }
+    button:active{
+      transform:translate(3px,3px);
+      box-shadow:1px 1px 0 var(--ink);
+    }
+    .primary{background:var(--yellow)}
+    .whatsapp{background:#dff6e7}
+    .main{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      min-height:520px;
+    }
+    .visual{
+      border-right:3px solid var(--ink);
+      padding:26px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      background:repeating-linear-gradient(45deg,#edf4ff 0 18px,#e6eef9 18px 36px);
+    }
+    .globe-wrap{
+      width:250px;
+      height:250px;
+      position:relative;
+      display:grid;
+      place-items:center;
+      margin-bottom:20px;
+    }
+    .globe{
+      width:210px;
+      height:210px;
+      border:4px solid var(--ink);
+      border-radius:50%;
+      overflow:hidden;
+      background:
+        radial-gradient(circle at 30% 30%,rgba(255,255,255,.8),transparent 18%),
+        repeating-linear-gradient(0deg,transparent 0 24px,rgba(255,255,255,.22) 24px 26px),
+        repeating-linear-gradient(90deg,transparent 0 34px,rgba(255,255,255,.18) 34px 36px),
+        linear-gradient(135deg,#7ac6ff,#1a72c7);
+      position:relative;
+      box-shadow:inset -18px -18px 0 rgba(0,0,0,.12);
+    }
+    .globe::before,.globe::after{
+      content:"";
+      position:absolute;
+      background:#7fbb67;
+      border:3px solid rgba(0,0,0,.16);
+      border-radius:55% 45% 60% 40%;
+    }
+    .globe::before{width:72px;height:110px;left:24px;top:43px;transform:rotate(-18deg)}
+    .globe::after{width:88px;height:65px;right:18px;top:76px;transform:rotate(21deg)}
+    .spinning{animation:spin 1s linear infinite}
+    .zooming{animation:zoomIn .7s ease forwards}
+    .country-flag{
+      position:absolute;
+      right:0;
+      top:4px;
+      font-size:52px;
+      filter:drop-shadow(2px 3px 0 rgba(0,0,0,.22));
+    }
+    .finland-loader{
+      display:none;
+      flex-direction:column;
+      align-items:center;
+      gap:14px;
+      position:absolute;
+      inset:0;
+      justify-content:center;
+      z-index:5;
+      background:rgba(237,244,255,.94);
+      border-radius:20px;
+    }
+    .finland-loader.active{display:flex}
+    .finnish-flag{
+      width:120px;
+      height:76px;
+      border:3px solid var(--ink);
+      border-radius:8px;
+      background:
+        linear-gradient(to right,transparent 0 28%,#003580 28% 43%,transparent 43% 100%),
+        linear-gradient(to bottom,white 0 38%,#003580 38% 60%,white 60% 100%);
+      box-shadow:0 5px 0 rgba(0,0,0,.14);
+      animation:flagSpin .65s linear infinite;
+    }
+    .loader-text{font-weight:900;font-size:1.05rem}
+    .map{
+      width:min(360px,100%);
+      min-height:170px;
+      border:3px solid var(--ink);
+      border-radius:18px;
+      background:
+        repeating-linear-gradient(0deg,#faf7ef 0 22px,#f2ecdf 22px 23px),
+        repeating-linear-gradient(90deg,transparent 0 32px,rgba(0,0,0,.05) 32px 33px);
+      position:relative;
+      overflow:hidden;
+      padding:18px;
+      text-align:center;
+    }
+    .map-country{font-size:1.35rem;font-weight:900;margin-top:18px}
+    .coords{color:var(--muted);font-size:.9rem;margin-top:6px}
+    .pin{
+      width:32px;height:32px;
+      background:#e84b3c;
+      border:3px solid var(--ink);
+      border-radius:50% 50% 50% 0;
+      transform:rotate(-45deg);
+      position:absolute;
+      left:50%;
+      top:56%;
+      margin-left:-16px;
+      margin-top:-16px;
+      display:none;
+      box-shadow:3px 3px 0 rgba(0,0,0,.18);
+    }
+    .pin::after{
+      content:"";
+      width:8px;height:8px;
+      background:#fff;
+      border:2px solid var(--ink);
+      border-radius:50%;
+      position:absolute;
+      left:8px;top:8px;
+    }
+    .pin.drop{display:block;animation:drop .65s cubic-bezier(.2,.9,.3,1.3)}
+    .content{
+      padding:28px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      gap:18px;
+    }
+    .mode-badge{
+      align-self:flex-start;
+      padding:8px 12px;
+      border:2px solid var(--ink);
+      border-radius:999px;
+      background:#f6efd8;
+      font-weight:900;
+      font-size:.88rem;
+    }
+    .excuse{
+      min-height:240px;
+      border:3px solid var(--ink);
+      border-radius:18px;
+      padding:24px;
+      background:#fbf7ee;
+      font-size:clamp(1.25rem,3vw,1.75rem);
+      line-height:1.5;
+      font-weight:800;
+      display:flex;
+      align-items:center;
+    }
+    .typing-cursor::after{
+      content:"|";
+      animation:blink .8s infinite;
+      margin-left:2px;
+    }
+    .meter{
+      border:3px solid var(--ink);
+      border-radius:16px;
+      padding:16px;
+      background:#fff;
+    }
+    .meter-row{
+      display:flex;
+      justify-content:space-between;
+      gap:14px;
+      font-weight:900;
+      margin-bottom:10px;
+    }
+    .bar{
+      height:22px;
+      border:3px solid var(--ink);
+      border-radius:999px;
+      overflow:hidden;
+      background:#eee;
+    }
+    .fill{
+      height:100%;
+      width:0%;
+      background:linear-gradient(90deg,#e8594f,#ffd84d,#56b56e);
+      transition:width .7s ease;
+    }
+    .status{
+      min-height:22px;
+      text-align:center;
+      padding:0 22px 20px;
+      font-weight:800;
+      color:var(--green);
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes flagSpin{to{transform:rotate(360deg)}}
+    @keyframes zoomIn{from{transform:scale(1)}to{transform:scale(1.2)}}
+    @keyframes drop{
+      from{transform:translateY(-130px) rotate(-45deg);opacity:0}
+      to{transform:translateY(0) rotate(-45deg);opacity:1}
+    }
+    @keyframes blink{50%{opacity:0}}
+    @media(max-width:760px){
+      .main{grid-template-columns:1fr}
+      .visual{border-right:0;border-bottom:3px solid var(--ink)}
+      .app{box-shadow:5px 5px 0 var(--ink)}
+      .controls>*{width:100%}
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <p class="eyebrow">The official excuse service</p>
+      <h1>Where's Michael?</h1>
+      <p class="sub">Generate Michael's latest implausibly worthy overseas commitment.</p>
+    </header>
+
+    <section class="controls">
+      <select id="category" aria-label="Excuse category">
+        <option>Humanitarian</option>
+        <option>Academic</option>
+        <option>Spiritual</option>
+        <option>Environmental</option>
+        <option>UN Consultant</option>
+        <option>Ridiculous</option>
+      </select>
+      <button class="primary" id="generateBtn">Locate Michael</button>
+      <button id="copyBtn">Copy</button>
+      <button class="whatsapp" id="whatsappBtn">Send to WhatsApp</button>
+    </section>
+
+    <section class="main">
+      <div class="visual">
+        <div class="globe-wrap">
+          <div id="globe" class="globe"></div>
+          <div id="countryFlag" class="country-flag">🇫🇮</div>
+
+          <div id="finlandLoader" class="finland-loader">
+            <div class="finnish-flag" aria-label="Spinning Finnish flag"></div>
+            <div id="loaderText" class="loader-text">Locating Michael...</div>
+          </div>
+        </div>
+
+        <div class="map">
+          <div id="pin" class="pin"></div>
+          <div id="mapCountry" class="map-country">Location unknown</div>
+          <div id="coords" class="coords">Awaiting satellite confirmation</div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div id="modeBadge" class="mode-badge">Humanitarian mode</div>
+
+        <div id="excuse" class="excuse">
+          Press “Locate Michael” to begin.
+        </div>
+
+        <div class="meter">
+          <div class="meter-row">
+            <span>Believability Meter</span>
+            <span id="score">0%</span>
+          </div>
+          <div class="bar"><div id="fill" class="fill"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <div id="status" class="status"></div>
+  </main>
+
+<script>
+const locations = [
+  {country:"Finland", place:"a remote village in northern Finland", flag:"🇫🇮", coords:"67.8° N, 26.6° E"},
+  {country:"Estonia", place:"the Estonian countryside", flag:"🇪🇪", coords:"58.6° N, 25.0° E"},
+  {country:"Mongolia", place:"a yurt outside Ulaanbaatar", flag:"🇲🇳", coords:"47.9° N, 106.9° E"},
+  {country:"Bhutan", place:"a monastery in Bhutan", flag:"🇧🇹", coords:"27.5° N, 90.4° E"},
+  {country:"Slovenia", place:"a mountain village in Slovenia", flag:"🇸🇮", coords:"46.1° N, 14.8° E"},
+  {country:"Latvia", place:"the forests of Latvia", flag:"🇱🇻", coords:"56.9° N, 24.6° E"},
+  {country:"Iceland", place:"a converted lighthouse in Iceland", flag:"🇮🇸", coords:"64.9° N, 18.6° W"},
+  {country:"Georgia", place:"a vineyard in Georgia", flag:"🇬🇪", coords:"42.3° N, 43.4° E"},
+  {country:"Cambodia", place:"a floating community in Cambodia", flag:"🇰🇭", coords:"12.6° N, 104.9° E"},
+  {country:"Greenland", place:"a fishing settlement in Greenland", flag:"🇬🇱", coords:"71.7° N, 42.6° W"}
+];
+
+const data = {
+  "Humanitarian":{
+    groups:["blind children","a cooperative of grandmothers","displaced accordion teachers","retired lighthouse keepers"],
+    tasks:["how to dance the polka","basic first aid through mime","community karaoke","advanced scarf choreography"],
+    endings:["The charity has already printed my name on the programme.","Apparently I'm the only volunteer with the right temperament.","I can't let the community down at this stage."]
+  },
+  "Academic":{
+    groups:["doctoral students","an under-12s chess team","a society of amateur astronomers","three visiting professors"],
+    tasks:["the philosophy of competitive pancake flipping","advanced cloud classification","how to cite folklore correctly","the mathematics of ceremonial kazoo"],
+    endings:["The university has listed me as keynote speaker.","They've already published the conference programme.","My paper has unexpectedly passed peer review."]
+  },
+  "Spiritual":{
+    groups:["trainee monks","a silent retreat of former magicians","a circle of travelling mystics","a monastery choir"],
+    tasks:["mindful Morris dancing","the spiritual meaning of indoor archery","silent karaoke","breathwork for stubborn goats"],
+    endings:["The abbot personally requested me.","I've already taken a vow not to cancel.","It would be spiritually disruptive to withdraw now."]
+  },
+  "Environmental":{
+    groups:["volunteer park rangers","local alpaca farmers","a coastal birdwatching collective","teenage yak herders"],
+    tasks:["sustainable sauna construction","low-carbon shepherding","eco-friendly spoon carving","how to restore emotionally significant wheelbarrows"],
+    endings:["The project is grant-funded and time-sensitive.","The wetlands depend on me.","A documentary crew is following the entire initiative."]
+  },
+  "UN Consultant":{
+    groups:["regional delegates","a cross-border task force","municipal officials","an emergency cultural committee"],
+    tasks:["international pub etiquette","maritime flag diplomacy","goat-based conflict resolution","standardised folk-dance procedure"],
+    endings:["UNESCO are loosely involved.","The Foreign Office nominated me.","There are permits, observers and a closing plenary."]
+  },
+  "Ridiculous":{
+    groups:["retired Olympic curlers","former circus performers","a women-only falconry club","widowed accordion players"],
+    tasks:["competitive shepherding","historically accurate disco","silent ventriloquism","how to negotiate with aggressive geese"],
+    endings:["The mayor is expecting me.","They've already built a statue.","Flights are non-refundable and the goats know my name."]
+  }
+};
+
+const openings = [
+  "Sorry lads, can't make the holiday this month.",
+  "Can't do this one, lads.",
+  "Bad timing. I've accidentally committed to something abroad.",
+  "Would love to come, but I'm already needed elsewhere."
+];
+
+const loaderMessages = [
+  "Spinning up the Finnish satellite...",
+  "Checking Finnair departures...",
+  "Contacting the Estonian Embassy...",
+  "Calling UNESCO...",
+  "Triangulating Michael's location..."
+];
+
+const randomItem = array => array[Math.floor(Math.random() * array.length)];
+let currentExcuse = "";
+let typingTimer = null;
+
+function typeText(element, text, speed = 20){
+  clearInterval(typingTimer);
+  element.textContent = "";
+  element.classList.add("typing-cursor");
+  let index = 0;
+
+  typingTimer = setInterval(() => {
+    element.textContent += text.charAt(index);
+    index += 1;
+
+    if(index >= text.length){
+      clearInterval(typingTimer);
+      element.classList.remove("typing-cursor");
+    }
+  }, speed);
+}
+
+function generate(){
+  const category = document.getElementById("category").value;
+  const pack = data[category];
+  const location = randomItem(locations);
+  const score = Math.floor(Math.random() * 61) + 35;
+
+  const globe = document.getElementById("globe");
+  const loader = document.getElementById("finlandLoader");
+  const pin = document.getElementById("pin");
+  const excuse = document.getElementById("excuse");
+
+  document.getElementById("status").textContent = "";
+  document.getElementById("modeBadge").textContent = category + " mode";
+  document.getElementById("loaderText").textContent = randomItem(loaderMessages);
+
+  loader.classList.add("active");
+  globe.classList.add("spinning");
+  pin.className = "pin";
+  excuse.textContent = "";
+
+  setTimeout(() => {
+    loader.classList.remove("active");
+    globe.classList.remove("spinning");
+    globe.classList.add("zooming");
+
+    document.getElementById("countryFlag").textContent = location.flag;
+    document.getElementById("mapCountry").textContent = location.country;
+    document.getElementById("coords").textContent = location.coords;
+    pin.classList.add("drop");
+
+    currentExcuse =
+      `${randomItem(openings)} I'm in ${location.place} teaching ` +
+      `${randomItem(pack.groups)} ${randomItem(pack.tasks)}. ` +
+      `${randomItem(pack.endings)}`;
+
+    document.getElementById("score").textContent = score + "%";
+    document.getElementById("fill").style.width = score + "%";
+    typeText(excuse, currentExcuse);
+
+    setTimeout(() => globe.classList.remove("zooming"), 700);
+  }, 2000);
+}
+
+async function copyExcuse(){
+  if(!currentExcuse){
+    document.getElementById("status").textContent = "Generate an excuse first.";
+    return;
+  }
+
+  try{
+    await navigator.clipboard.writeText(currentExcuse);
+    document.getElementById("status").textContent = "Copied to clipboard.";
+  }catch{
+    document.getElementById("status").textContent = "Copying is blocked in this preview.";
+  }
+}
+
+function sendWhatsApp(){
+  if(!currentExcuse){
+    document.getElementById("status").textContent = "Generate an excuse first.";
+    return;
+  }
+
+  const url = "https://wa.me/?text=" + encodeURIComponent(currentExcuse);
+  window.open(url, "_blank");
+}
+
+document.getElementById("generateBtn").addEventListener("click", generate);
+document.getElementById("copyBtn").addEventListener("click", copyExcuse);
+document.getElementById("whatsappBtn").addEventListener("click", sendWhatsApp);
+</script>
+</body>
+</html>
